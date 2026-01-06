@@ -6,31 +6,33 @@ pipeline {
     }
 
     stages {
-
         stage('Git Checkout & Show Tree') {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/KARTIKNAIK18/Demo-CICD.git'
 
-                bat 'dir'
+                // 'ls -R' is the macOS/Linux equivalent of the Windows 'dir' command
+                sh 'ls -R'
             }
         }
 
         stage('Build') {
             steps {
-                bat 'npm install'
+                sh 'npm install'
             }
         }
 
         stage('Test') {
             steps {
-                bat 'npm test'
+                sh 'npm test'
             }
         }
 
         stage('Deploy') {
             steps {
-                bat 'npm start'
+                // Note: 'npm start' usually keeps running. 
+                // In a real CI/CD pipeline, you might use a process manager like PM2.
+                sh 'npm start'
             }
         }
     }
