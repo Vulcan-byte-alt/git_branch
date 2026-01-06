@@ -2,38 +2,54 @@ pipeline {
     agent any
     
     tools {
+        // Ensure "node" matches the name configured in Jenkins -> Manage Jenkins -> Tools
         nodejs "node"
     }
 
     stages {
         stage('Git Checkout & Show Tree') {
             steps {
+                // Check out the application source code
                 git branch: 'main',
                     url: 'https://github.com/KARTIKNAIK18/Demo-CICD.git'
 
-                // 'ls -R' is the macOS/Linux equivalent of the Windows 'dir' command
+                // 'ls -R' is the macOS equivalent of Windows 'dir /s'
                 sh 'ls -R'
             }
         }
 
         stage('Build') {
             steps {
+                // Install dependencies defined in package.json
                 sh 'npm install'
             }
         }
 
         stage('Test') {
             steps {
+                // Run your test suite
                 sh 'npm test'
             }
         }
 
         stage('Deploy') {
             steps {
-                // Note: 'npm start' usually keeps running. 
-                // In a real CI/CD pipeline, you might use a process manager like PM2.
-                sh 'npm start'
+                echo 'Starting the application in the background...'
+                /* - nohup: allows the process to keep running after the shell exits
+                   - &: puts the process in the background
+                   - > out.log 2>&1: redirects all logs to a file so they don't block Jenkins
+                */
+                sh 'nohup npm start > output.log 2>&1 &'
             }
+        }
+    }
+    
+    post {
+        success {
+            echo 'Pipeline finished successfully! Your app is running.'
+        }
+        failure {
+            echo 'Pipeline failed. Check the console output for errors.'
         }
     }
 }
