@@ -2,54 +2,56 @@ pipeline {
     agent any
     
     tools {
-        // Ensure "node" matches the name configured in Jenkins -> Manage Jenkins -> Tools
+        // Must match the name in Manage Jenkins -> Tools
         nodejs "node"
     }
 
     stages {
         stage('Git Checkout & Show Tree') {
             steps {
-                // Check out the application source code
                 git branch: 'main',
                     url: 'https://github.com/KARTIKNAIK18/Demo-CICD.git'
 
-                // 'ls -R' is the macOS equivalent of Windows 'dir /s'
+                // List files on macOS
                 sh 'ls -R'
             }
         }
 
         stage('Build') {
             steps {
-                // Install dependencies defined in package.json
                 sh 'npm install'
             }
         }
 
         stage('Test') {
             steps {
-                // Run your test suite
                 sh 'npm test'
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'Starting the application in the background...'
-                /* - nohup: allows the process to keep running after the shell exits
-                   - &: puts the process in the background
-                   - > out.log 2>&1: redirects all logs to a file so they don't block Jenkins
+                echo 'Starting the application...'
+                /*
+                  1. nohup runs the process in the background.
+                  2. output.log stores the console logs (and the link).
+                  3. sleep 5 gives the app time to start.
+                  4. cat output.log prints the link back to Jenkins console.
                 */
-                sh 'nohup npm start > output.log 2>&1 &'
+                sh '''
+                    nohup npm start > output.log 2>&1 &
+                    sleep 5
+                    echo "--- Application Logs (Look here for the link) ---"
+                    cat output.log
+                    echo "------------------------------------------------"
+                '''
             }
         }
     }
     
     post {
         success {
-            echo 'Pipeline finished successfully! Your app is running.'
-        }
-        failure {
-            echo 'Pipeline failed. Check the console output for errors.'
+            echo 'Pipeline finished! The app is running in the background.'
         }
     }
 }
